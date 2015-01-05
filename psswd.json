@@ -1,0 +1,11 @@
+{
+    "bras": {
+        "ip": "0.0.0.0",
+        "login": "login",
+        "passwd": "password"
+    },
+    "bts": {
+        "login": "login",
+        "passwd": "password"
+    }
+}
