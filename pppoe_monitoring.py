@@ -5,31 +5,30 @@ from math import sqrt
 import json
 import datetime
 from pexpect import spawn, EOF, TIMEOUT
-
 from bras import BRAS
 from utils import cisco_to_ieee_802
-
 import pprint
 
 class Fping(Thread):
+    """
+    """
     def __init__(self, ip_list, repeat_count=10):
+        """
+        """
         Thread.__init__(self)
         self.ip_list = ip_list
         self.repeat_count = repeat_count
         self.result = None
 
     def run(self):
-        pipe = Popen(
-                ['fping', '-C%d' % self.repeat_count, '-q', '-i25'],
-                stdin=PIPE,
-                stderr=PIPE,
-                close_fds=True)
-
+        """
+        """
+        pipe = Popen(['fping', '-C%d' % self.repeat_count, '-q', '-i25'], stdin=PIPE, stderr=PIPE, close_fds=True)
         pipe.stdin.write('\n'.join(self.ip_list))
         pipe.stdin.close()
-
         raw_result = pipe.stderr.read()
         self.result = {}
+
         for line in raw_result.splitlines():
             if 'ICMP' in line:
                 # ignore the unreachable, TTL exceeded, etc. messages
@@ -40,13 +39,12 @@ class Fping(Thread):
             packet_loss = 100*float(rtt_list.count('-'))/len(rtt_list)
             # remove the '-' values from the list and convert the rest to float
             rtt_values = map(float, filter(lambda x: x != '-', rtt_list))
+
             if len(rtt_values) > 0:
                 rtt_min = min(rtt_values)
                 rtt_max = max(rtt_values)
                 rtt_avg = sum(rtt_values)/len(rtt_values)
-                rtt_dev = sqrt(
-                        sum([(v-rtt_avg)**2 for v in rtt_values]
-                            )/len(rtt_values))
+                rtt_dev = sqrt(sum([(v-rtt_avg)**2 for v in rtt_values])/len(rtt_values))
                 self.result[ip] = {
                         'packet_loss': packet_loss,
                         'rtt_min': rtt_min,
@@ -64,13 +62,19 @@ class Fping(Thread):
                         }
 
 class NS_M5(Thread):
+    """
+    """
     def __init__(self, ip, username, password):
+        """
+        """
         Thread.__init__(self)
         self.ip = ip
         self.username = username
         self.password = password
 
     def run(self):
+        """
+        """
         try:
             child = spawn('ssh %s@%s' % (self.username, self.ip))
             child.logfile_read = open('/tmp/%s.log' % self.ip, 'w')
@@ -86,9 +90,7 @@ class NS_M5(Thread):
             child.sendline('/usr/www/status.cgi')
             child.expect_exact('/usr/www/status.cgi')
             child.expect_exact(hostname)
-            json_response = child.before.replace(
-                    'Content-Type: application/json',
-                    '')
+            json_response = child.before.replace('Content-Type: application/json', '')
             self.ap_data = json.loads(json_response)
             self.fetched_data = True
         except EOF:
@@ -97,13 +99,19 @@ class NS_M5(Thread):
             self.fetched_data = False
 
 class NS_5(Thread):
+    """
+    """
     def __init__(self, ip, username, password):
+        """
+        """
         Thread.__init__(self)
         self.ip = ip
         self.username = username
         self.password = password
 
     def run(self):
+        """
+        """
         try:
             child = spawn('ssh %s@%s' % (self.username, self.ip))
             child.expect('assword')
@@ -139,6 +147,8 @@ class NS_5(Thread):
             self.fetched_data = False
 
 def find_station_client(station_mapping, mac):
+    """
+    """
     for station in station_mapping:
         for client_datum in station_mapping[station]['client_data']:
             if client_datum['mac'] == mac:
@@ -146,6 +156,8 @@ def find_station_client(station_mapping, mac):
     return None, None
 
 def format_nsca(service, client, status_code, text, values):
+    """
+    """
     nsca_line = '%s\t%s\t%d\t%s' % (
             service,
             client,
@@ -159,11 +171,10 @@ def format_nsca(service, client, status_code, text, values):
             nsca_line += '%s=%s%s%s ' % (name, val, t, postfix or '')
     return nsca_line
 
-
-
 def main():
+    """
+    """
     hercules = BRAS(ip='***.***.***.***', username='**********', password='**********')
-
     virtual_access_mapping = {}
     lcp_macs = []
     pta_macs = []
@@ -171,15 +182,13 @@ def main():
     for i in range(0, len(hercules.session_lines())/2):
         first_line = hercules.session_lines()[2*i]
         second_line = hercules.session_lines()[2*i + 1]
-        uid, sid, remote_mac, port, virtual_template, virtual_access, state = [
-                part.strip() for part in first_line.split( )]
+        uid, sid, remote_mac, port, virtual_template, virtual_access, state = [part.strip() for part in first_line.split( )]
         remote_mac = cisco_to_ieee_802(remote_mac)
         if state == 'LCP':
             lcp_macs.append(remote_mac)
         else:
             pta_macs.append(remote_mac)
-            local_mac, v_text, vlan_id, status = [
-                    part.strip() for part in second_line.split( )]
+            local_mac, v_text, vlan_id, status = [part.strip() for part in second_line.split( )]
             local_mac = cisco_to_ieee_802(local_mac)
             vlan_id = vlan_id[1:]
 
@@ -204,11 +213,8 @@ def main():
 
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(virtual_access_mapping)
-
     stations = json.load(open(sys.path[0]+'/stations.json'))
-
-    fping = Fping(
-            [virtual_access_mapping[v]['ip'] for v in virtual_access_mapping])
+    fping = Fping([virtual_access_mapping[v]['ip'] for v in virtual_access_mapping])
     station_procs = [NS_M5(ip, '*****', '******') for ip in stations if stations[ip]['type']=='ns_m5']
     station_procs += [NS_5(ip, '*****', '******') for ip in stations if stations[ip]['type']=='ns_5']
     station_mapping = {}
@@ -225,7 +231,6 @@ def main():
     pp.pprint(station_mapping)
     fping.join()
     pp.pprint(fping.result)
-
     nsca_lines = []
     clients = json.load(open(sys.path[0]+'/clients.json'))
 
