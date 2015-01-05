@@ -9,9 +9,6 @@ from bras import BRAS
 from utils import cisco_to_ieee_802
 import pprint
 
-brasAuth=None
-btsAuth=None
-
 class Fping(Thread):
     """
     """
