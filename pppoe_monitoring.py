@@ -168,10 +168,9 @@ class routerOS(Thread): #unfinished
             child.expect('Password:')
             child.sendline(self.password)
             child.expect('>')
-
-            json_response = child.before
+            child.sendline('interface wireless registration-table print')
+            json_response = child.before #routerOS output here
             self.client_data = json.loads(json_response)
-
             json_response = child.before.replace('Content-Type: application/json', '')
             self.ap_data = json.loads(json_response)
             self.fetched_data = True
