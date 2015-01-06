@@ -146,6 +146,43 @@ class NS_5(Thread):
         except TIMEOUT:
             self.fetched_data = False
 
+class routerOS(Thread):
+    """
+    """
+    def __init__(self, ip, username, password):
+        """
+        """
+        Thread.__init__(self)
+        self.ip = ip
+        self.username = username
+        self.password = password
+
+    def run(self):
+        """
+        """
+        try:
+            child = spawn('ssh %s@%s' % (self.username, self.ip))
+            child.logfile_read = open('/tmp/%s.log' % self.ip, 'w')
+            child.expect('assword')
+            child.sendline(self.password)
+            child.expect('#')
+            hostname = child.before.split('\n')[-1]
+            child.sendline('wstalist')
+            child.expect_exact('wstalist')
+            child.expect_exact(hostname)
+            json_response = child.before
+            self.client_data = json.loads(json_response)
+            child.sendline('/usr/www/status.cgi')
+            child.expect_exact('/usr/www/status.cgi')
+            child.expect_exact(hostname)
+            json_response = child.before.replace('Content-Type: application/json', '')
+            self.ap_data = json.loads(json_response)
+            self.fetched_data = True
+        except EOF:
+            self.fetched_data = False
+        except TIMEOUT:
+            self.fetched_data = False
+
 def find_station_client(station_mapping, mac):
     """
     """
