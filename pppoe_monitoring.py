@@ -146,7 +146,7 @@ class NS_5(Thread):
         except TIMEOUT:
             self.fetched_data = False
 
-class routerOS(Thread):
+class routerOS(Thread): #unfinished
     """
     """
     def __init__(self, ip, username, password):
@@ -161,20 +161,17 @@ class routerOS(Thread):
         """
         """
         try:
-            child = spawn('ssh %s@%s' % (self.username, self.ip))
+            child = spawn('telnet %s' % self.ip)
             child.logfile_read = open('/tmp/%s.log' % self.ip, 'w')
-            child.expect('assword')
+            child.expect('Login:')
+            child.sendline(self.username)
+            child.expect('Password:')
             child.sendline(self.password)
-            child.expect('#')
-            hostname = child.before.split('\n')[-1]
-            child.sendline('wstalist')
-            child.expect_exact('wstalist')
-            child.expect_exact(hostname)
+            child.expect('>')
+
             json_response = child.before
             self.client_data = json.loads(json_response)
-            child.sendline('/usr/www/status.cgi')
-            child.expect_exact('/usr/www/status.cgi')
-            child.expect_exact(hostname)
+
             json_response = child.before.replace('Content-Type: application/json', '')
             self.ap_data = json.loads(json_response)
             self.fetched_data = True
@@ -283,17 +280,7 @@ def main():
         packet_loss = fping.result[ip]['packet_loss']
         station, client_datum = find_station_client(station_mapping, mac)
         if station:
-            nsca_line = format_nsca(
-                    stations[station]['service'],
-                    mac.replace(':', '-'),
-                    0,
-                    'Username: %s; PPPoE IP: %s; Wi-Fi name: %s' % (
-                        username,
-                        ip,
-                        client_datum['name'],
-                        ),
-                    [
-                        ('signal', client_datum['signal'],'dBm', None),
+            nsca_line = format_nsca(stations[station]['service'], mac.replace(':', '-'), 0, 'Username: %s; PPPoE IP: %s; Wi-Fi name: %s' % (username, ip, client_datum['name'],), [('signal', client_datum['signal'],'dBm', None),
                         ('ccq', client_datum['ccq'], '%', None),
                         ('rtt_min', rtt_min, 'ms', None),
                         ('rtt_avg', rtt_avg, 'ms', None),
