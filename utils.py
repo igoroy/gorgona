@@ -11,11 +11,18 @@ def cisco_to_ieee_802(cisco_mac):
 
 def parsTik(host, login, passwrd):
     """
-    :param host: BTS IP (Tik only)
+    :param host:
     :param login:
     :param passwrd:
     :return: List of customers (with param.)
     """
-#    bot = SSHClient()
-#    bot.set_missing_host_key_policy(AutoAddPolicy())
-    pass
+    bot = SSHClient()
+    bot.set_missing_host_key_policy(AutoAddPolicy())
+    bot.connect(host, username=login, password=passwrd)
+    stdin, stdout, stderr = bot.exec_command('interface wireless registration-table print')
+    data = stdout.readlines()
+    bot.close()
+
+    for line in data:
+        print line
+
