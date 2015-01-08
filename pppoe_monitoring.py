@@ -29,10 +29,18 @@ class Fping(Thread):
         raw_result = pipe.stderr.read()
         self.result = {}
 
+	print "fping results line parsing"
         for line in raw_result.splitlines():
             if 'ICMP' in line:
                 # ignore the unreachable, TTL exceeded, etc. messages
                 continue
+            if 'duplicate' in line:
+                # check and ignore duplicate packet messages
+		print "dublicate detected!"
+		# with additional error output
+		print line
+                continue
+	    print line
             parts = line.split(' : ')
             ip = parts[0].strip()
             rtt_list = parts[1].split(' ')
