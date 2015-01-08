@@ -175,7 +175,7 @@ def main():
     """
     """
     custAuth = json.load(open(sys.path[0]+'/psswd.json'))
-    hercules = BRAS(ip=custAuth[bras][ip], username=custAuth[bras][login], password=custAuth[bras][passwd])
+    hercules = BRAS(ip=custAuth['bras']['ip'], username=custAuth['bras']['login'], password=custAuth['bras']['passwd'])
     virtual_access_mapping = {}
     lcp_macs = []
     pta_macs = []
@@ -216,8 +216,8 @@ def main():
     pp.pprint(virtual_access_mapping)
     stations = json.load(open(sys.path[0]+'/stations.json'))
     fping = Fping([virtual_access_mapping[v]['ip'] for v in virtual_access_mapping])
-    station_procs = [NS_M5(ip, custAuth[bts][login], custAuth[bts][passwd]) for ip in stations if stations[ip]['type']=='ns_m5']
-    station_procs += [NS_5(ip, custAuth[bts][login], custAuth[bts][passwd]) for ip in stations if stations[ip]['type']=='ns_5']
+    station_procs = [NS_M5(ip, custAuth['bts']['login'], custAuth['bts']['passwd']) for ip in stations if stations[ip]['type']=='ns_m5']
+    station_procs += [NS_5(ip, custAuth['bts']['login'], custAuth['bts']['passwd']) for ip in stations if stations[ip]['type']=='ns_5']
     station_mapping = {}
     fping.start()
     for station_proc in station_procs:
