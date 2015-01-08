@@ -155,6 +155,39 @@ class NS_5(Thread):
         except TIMEOUT:
             self.fetched_data = False
 
+class routerOS(Thread): #unfinished
+    """
+    """
+    def __init__(self, ip, username, password):
+        """
+        """
+        Thread.__init__(self)
+        self.ip = ip
+        self.username = username
+        self.password = password
+
+    def run(self):
+        """
+        """
+        try:
+            child = spawn('telnet %s' % self.ip)
+            child.logfile_read = open('/tmp/%s.log' % self.ip, 'w')
+            child.expect('Login:')
+            child.sendline(self.username)
+            child.expect('Password:')
+            child.sendline(self.password)
+            child.expect('>')
+            child.sendline('interface wireless registration-table print')
+            json_response = child.before #routerOS output here
+            self.client_data = json.loads(json_response)
+            json_response = child.before.replace('Content-Type: application/json', '')
+            self.ap_data = json.loads(json_response)
+            self.fetched_data = True
+        except EOF:
+            self.fetched_data = False
+        except TIMEOUT:
+            self.fetched_data = False
+
 def find_station_client(station_mapping, mac):
     """
     """
@@ -255,17 +288,7 @@ def main():
         packet_loss = fping.result[ip]['packet_loss']
         station, client_datum = find_station_client(station_mapping, mac)
         if station:
-            nsca_line = format_nsca(
-                    stations[station]['service'],
-                    mac.replace(':', '-'),
-                    0,
-                    'Username: %s; PPPoE IP: %s; Wi-Fi name: %s' % (
-                        username,
-                        ip,
-                        client_datum['name'],
-                        ),
-                    [
-                        ('signal', client_datum['signal'],'dBm', None),
+            nsca_line = format_nsca(stations[station]['service'], mac.replace(':', '-'), 0, 'Username: %s; PPPoE IP: %s; Wi-Fi name: %s' % (username, ip, client_datum['name'],), [('signal', client_datum['signal'],'dBm', None),
                         ('ccq', client_datum['ccq'], '%', None),
                         ('rtt_min', rtt_min, 'ms', None),
                         ('rtt_avg', rtt_avg, 'ms', None),
