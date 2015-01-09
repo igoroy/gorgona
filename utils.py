@@ -9,9 +9,9 @@ def cisco_to_ieee_802(cisco_mac):
     ieee_mac = ':'.join([digits[0+2*i:2+2*i] for i in range(0,6)])
     return ieee_mac
 
-def parsTik(host, login, passwrd):
+def parsTik(host, login, passwrd): #with debug
     """
-    :param host:
+    :param host: BTS MikroTik only
     :param login:
     :param passwrd:
     :return: List of customers (with param.)
@@ -20,9 +20,49 @@ def parsTik(host, login, passwrd):
     bot.set_missing_host_key_policy(AutoAddPolicy())
     bot.connect(host, username=login, password=passwrd)
     stdin, stdout, stderr = bot.exec_command('interface wireless registration-table print stats')
-    data = stdout.readlines()
+    data = stdout.read()
     bot.close()
 
-    for line in data:
-        print line
+    tempList = data.split(' ')
+    badList = ['', '\r\n', '\r\n\r\n']
+    print tempList
+    print '---------------------------------------------------------------------------------------------------------------------------'
 
+    for badChar in badList:
+        try:
+            while badChar in tempList:
+                tempList.remove(badChar)
+        except:
+            continue
+
+    print tempList
+    for badChar in badList:
+        print badChar in tempList
+    print '---------------------------------------------------------------------------------------------------------------------------'
+
+    cust = []
+    clients = []
+
+    if len(tempList) > 0:
+        cnt = 0
+        flag = True
+        cust.append(tempList.index(str(cnt)))
+        while flag:
+            if str(cnt+1) in tempList:
+                cust.append(tempList.index(str(cnt+1)))
+                cnt += 1
+            else:
+                flag = False
+
+    print cust
+    print '---------------------------------------------------------------------------------------------------------------------------'
+
+    for i in range(0, len(cust)):
+        try:
+            clients.append(tempList[cust[i]:cust[i+1]])
+        except:
+            clients.append(tempList[cust[i]:])
+    print len(clients)
+    for client in clients:
+        print client
+        print '*******************'
