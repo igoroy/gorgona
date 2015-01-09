@@ -8,6 +8,8 @@ from pexpect import spawn, EOF, TIMEOUT
 from bras import BRAS
 from utils import cisco_to_ieee_802
 import pprint
+from paramiko import SSHClient
+from paramiko import AutoAddPolicy
 
 class Fping(Thread):
     """
@@ -170,18 +172,54 @@ class routerOS(Thread): #unfinished
         """
         """
         try:
-            child = spawn('telnet %s' % self.ip)
-            child.logfile_read = open('/tmp/%s.log' % self.ip, 'w')
-            child.expect('Login:')
-            child.sendline(self.username)
-            child.expect('Password:')
-            child.sendline(self.password)
-            child.expect('>')
-            child.sendline('interface wireless registration-table print')
-            json_response = child.before #routerOS output here
-            self.client_data = json.loads(json_response)
-            json_response = child.before.replace('Content-Type: application/json', '')
-            self.ap_data = json.loads(json_response)
+            bot = SSHClient()
+            bot.set_missing_host_key_policy(AutoAddPolicy())
+            bot.connect(self.ip, username=self.username, password=self.password)
+            stdin, stdout, stderr = bot.exec_command('interface wireless registration-table print stats')
+            data = stdout.read()
+            bot.close()
+            tempList = data.split(' ')
+            badList = ['', '\r\n', '\r\n\r\n']
+
+            for badChar in badList:
+                try:
+                    while badChar in tempList:
+                        tempList.remove(badChar)
+                except:
+                    continue
+            cust = []
+            clients = []
+
+            if len(tempList) > 0:
+                cnt = 0
+                flag = True
+                cust.append(tempList.index(str(cnt)))
+                while flag:
+                    if str(cnt+1) in tempList:
+                        cust.append(tempList.index(str(cnt+1)))
+                        cnt += 1
+                    else:
+                        flag = False
+
+            for i in range(0, len(cust)):
+                try:
+                    clients.append(tempList[cust[i]:cust[i+1]])
+                except:
+                    clients.append(tempList[cust[i]:])
+
+#           client_datum = {}
+#   ------------->   parse through client param and make <self.client_data = []>
+#           client_datum['mac'] = mac
+#           client_datum['signal'] = int(signal_strength)
+#           client_datum['ccq'] = int(ccq)/10
+#           client_datum['name'] = 'UBNT'
+#           client_datum['rx'] = float(rx_rate)
+#           client_datum['tx'] = float(tx_rate)
+#           client_datum['stats'] = {
+#               'rx_bytes': int(rx_bytes),
+#               'tx_bytes': int(tx_bytes),
+#               }
+#            self.ap_data = json.loads(json_response)
             self.fetched_data = True
         except EOF:
             self.fetched_data = False
