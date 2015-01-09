@@ -19,7 +19,7 @@ def parsTik(host, login, passwrd):
     bot = SSHClient()
     bot.set_missing_host_key_policy(AutoAddPolicy())
     bot.connect(host, username=login, password=passwrd)
-    stdin, stdout, stderr = bot.exec_command('interface wireless registration-table print')
+    stdin, stdout, stderr = bot.exec_command('interface wireless registration-table print stats')
     data = stdout.readlines()
     bot.close()
 
