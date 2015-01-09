@@ -66,3 +66,18 @@ def parsTik(host, login, passwrd): #with debug
     for client in clients:
         print client
         print '*******************'
+
+"""
+    Template of customers data structure
+"""
+#    client_datum = {}
+#    client_datum['mac'] = mac
+#    client_datum['signal'] = int(signal_strength)
+#    client_datum['ccq'] = int(ccq)/10
+#    client_datum['name'] = 'UBNT'
+#    client_datum['rx'] = float(rx_rate)
+#    client_datum['tx'] = float(tx_rate)
+#    client_datum['stats'] = {
+#        'rx_bytes': int(rx_bytes),
+#        'tx_bytes': int(tx_bytes),
+#        }
