@@ -9,7 +9,41 @@ def cisco_to_ieee_802(cisco_mac):
     ieee_mac = ':'.join([digits[0+2*i:2+2*i] for i in range(0,6)])
     return ieee_mac
 
-def parsTik(host, login, passwrd): #with debug
+def parsDatum(source):
+    """
+    :param source: List os customers param.
+    :return: Dict. 'client_datum' with customers stat
+    """
+    client_datum = {}
+    client_datum['name'] = 'TikClient'
+    for param in source:
+        try:
+            data = param.split('=')
+            if data[0] == 'mac-address':
+                client_datum['mac'] = data[1]
+            elif data[0] == 'signal-strength':
+                client_datum['signal'] = int(data[1][:3])
+            elif data[0] == 'tx-ccq':
+                client_datum['ccq'] = int(data[1][:2])
+            elif data[0] == 'rx-rate':
+                Mbps = data[1].find('M')
+                client_datum['rx'] = float(data[1][:Mbps])
+            elif data[0] == 'tx-rate':
+                Mbps = data[1].find('M')
+                client_datum['tx'] = float(data[1][:Mbps])
+            elif data[0] == 'bytes':
+                _rx, _tx = data[1].split(',')
+                client_datum['stats'] = {
+                    'rx_bytes': int(_rx),
+                    'tx_bytes': int(_tx),
+                    }
+        except:
+            continue
+
+    return client_datum
+
+
+def parsTik(host, login, passwrd):
     """
     :param host: BTS MikroTik only
     :param login:
@@ -25,8 +59,6 @@ def parsTik(host, login, passwrd): #with debug
 
     tempList = data.split(' ')
     badList = ['', '\r\n', '\r\n\r\n']
-    print tempList
-    print '---------------------------------------------------------------------------------------------------------------------------'
 
     for badChar in badList:
         try:
@@ -34,11 +66,6 @@ def parsTik(host, login, passwrd): #with debug
                 tempList.remove(badChar)
         except:
             continue
-
-    print tempList
-    for badChar in badList:
-        print badChar in tempList
-    print '---------------------------------------------------------------------------------------------------------------------------'
 
     cust = []
     clients = []
@@ -54,18 +81,12 @@ def parsTik(host, login, passwrd): #with debug
             else:
                 flag = False
 
-    print cust
-    print '---------------------------------------------------------------------------------------------------------------------------'
-
     for i in range(0, len(cust)):
         try:
             clients.append(tempList[cust[i]:cust[i+1]])
         except:
             clients.append(tempList[cust[i]:])
-    print len(clients)
-    for client in clients:
-        print client
-        print '*******************'
+    return clients
 
 """
     Template of customers data structure
