@@ -210,7 +210,6 @@ class routerOS(Thread): #unfinished
             self.client_data = []
             for client in clients:
                 self.client_data.append(parsDatum(client))
-#            self.ap_data = json.loads(json_response)
             self.fetched_data = True
         except EOF:
             self.fetched_data = False
