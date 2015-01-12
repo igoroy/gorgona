@@ -15,7 +15,6 @@ def parsDatum(source):
     :return: Dict. 'client_datum' with customers stat
     """
     client_datum = {}
-    client_datum['name'] = 'TikClient'
     for param in source:
         try:
             data = param.split('=')
@@ -31,6 +30,8 @@ def parsDatum(source):
             elif data[0] == 'tx-rate':
                 Mbps = data[1].find('M')
                 client_datum['tx'] = float(data[1][:Mbps])
+            elif data[0] == 'radio-name':
+                client_datum['name'] = data[1]
             elif data[0] == 'bytes':
                 _rx, _tx = data[1].split(',')
                 client_datum['stats'] = {
@@ -39,7 +40,6 @@ def parsDatum(source):
                     }
         except:
             continue
-
     return client_datum
 
 
