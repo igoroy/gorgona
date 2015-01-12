@@ -6,7 +6,7 @@ import json
 import datetime
 from pexpect import spawn, EOF, TIMEOUT
 from bras import BRAS
-from utils import cisco_to_ieee_802
+from utils import cisco_to_ieee_802, parsDatum
 import pprint
 from paramiko import SSHClient
 from paramiko import AutoAddPolicy
@@ -207,18 +207,9 @@ class routerOS(Thread): #unfinished
                 except:
                     clients.append(tempList[cust[i]:])
 
-#           client_datum = {}
-#   ------------->   parse through client param and make <self.client_data = []>
-#           client_datum['mac'] = mac
-#           client_datum['signal'] = int(signal_strength)
-#           client_datum['ccq'] = int(ccq)/10
-#           client_datum['name'] = 'UBNT'
-#           client_datum['rx'] = float(rx_rate)
-#           client_datum['tx'] = float(tx_rate)
-#           client_datum['stats'] = {
-#               'rx_bytes': int(rx_bytes),
-#               'tx_bytes': int(tx_bytes),
-#               }
+            self.client_data = []
+            for client in clients:
+                self.client_data.append(parsDatum(client))
 #            self.ap_data = json.loads(json_response)
             self.fetched_data = True
         except EOF:
