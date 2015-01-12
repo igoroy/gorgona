@@ -26,10 +26,10 @@ def parsDatum(source):
                 client_datum['ccq'] = int(data[1][:2])
             elif data[0] == 'rx-rate':
                 Mbps = data[1].find('M')
-                client_datum['rx'] = float(data[1][:Mbps])
+                client_datum['rx'] = float(data[1][1:Mbps])
             elif data[0] == 'tx-rate':
                 Mbps = data[1].find('M')
-                client_datum['tx'] = float(data[1][:Mbps])
+                client_datum['tx'] = float(data[1][1:Mbps])
             elif data[0] == 'radio-name':
                 client_datum['name'] = data[1]
             elif data[0] == 'bytes':
