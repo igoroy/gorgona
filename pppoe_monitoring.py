@@ -316,7 +316,14 @@ def main():
         packet_loss = fping.result[ip]['packet_loss']
         station, client_datum = find_station_client(station_mapping, mac)
         if station:
-            nsca_line = format_nsca(stations[station]['service'], mac.replace(':', '-'), 0, 'Username: %s; PPPoE IP: %s; Wi-Fi name: %s' % (username, ip, client_datum['name'],), [('signal', client_datum['signal'],'dBm', None),
+            nsca_line = format_nsca(
+                        stations[station]['service'], mac.replace(':', '-'), 0,
+                        'Username: %s; PPPoE IP: %s; Wi-Fi name: %s' %
+                          (
+                          username, ip, client_datum['name'],
+                          ),
+                        [
+                        ('signal', client_datum['signal'],'dBm', None),
                         ('ccq', client_datum['ccq'], '%', None),
                         ('rtt_min', rtt_min, 'ms', None),
                         ('rtt_avg', rtt_avg, 'ms', None),
